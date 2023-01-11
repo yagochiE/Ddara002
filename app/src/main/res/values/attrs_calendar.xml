@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CalendarVw">
+        <attr name="row_count" format="integer" />
+        <attr name="column_count" format="integer"/>
+        <attr name="cell_height" format="dimension"/>
+        <attr name="cell_width" format="dimension"/>
+        <attr name="header_title" format="reference"/>
+        <attr name="sticker_colors" format="reference"/>
+        <attr name="header_highlight_color" format="color"/>
+    </declare-styleable>
+</resources>
