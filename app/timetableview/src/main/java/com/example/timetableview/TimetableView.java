@@ -14,20 +14,25 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 public class TimetableView extends LinearLayout {
-    private static final int DEFAULT_ROW_COUNT = 12;
-    private static final int DEFAULT_COLUMN_COUNT = 6;
+    private static final int DEFAULT_ROW_COUNT = 17;
+    private static final int DEFAULT_COLUMN_COUNT = 8;
     private static final int DEFAULT_CELL_HEIGHT_DP = 50;
     private static final int DEFAULT_SIDE_CELL_WIDTH_DP = 30;
     private static final int DEFAULT_START_TIME = 9;
@@ -78,6 +83,12 @@ public class TimetableView extends LinearLayout {
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TimetableView);
         rowCount = a.getInt(R.styleable.TimetableView_row_count, DEFAULT_ROW_COUNT) - 1;
         columnCount = a.getInt(R.styleable.TimetableView_column_count, DEFAULT_COLUMN_COUNT);
+        /*if (columncount_num == 0) {
+            columnCount = a.getInt(R.styleable.TimetableView_column_count, DEFAULT_COLUMN_COUNT)*2;
+            columncount_num++;
+        } else if (columncount_num == 1) {
+            columnCount = a.getInt(R.styleable.TimetableView_column_count, DEFAULT_COLUMN_COUNT);
+        }*/
         cellHeight = a.getDimensionPixelSize(R.styleable.TimetableView_cell_height, dp2Px(DEFAULT_CELL_HEIGHT_DP));
         sideCellWidth = a.getDimensionPixelSize(R.styleable.TimetableView_side_cell_width, dp2Px(DEFAULT_SIDE_CELL_WIDTH_DP));
         int titlesId = a.getResourceId(R.styleable.TimetableView_header_title, R.array.default_header_title);
@@ -141,17 +152,41 @@ public class TimetableView extends LinearLayout {
         final int count = specIdx < 0 ? ++stickerCount : specIdx;
         Sticker sticker = new Sticker();
         for (Schedule schedule : schedules) {
-            TextView tv = new TextView(context);
-
+            RelativeLayout relativeItem = new RelativeLayout(context);
             RelativeLayout.LayoutParams param = createStickerParam(schedule);
-            tv.setLayoutParams(param);
-            tv.setPadding(10, 0, 10, 0);
-            tv.setText(schedule.getClassTitle() + "\n" + schedule.getClassPlace());
+            relativeItem.setLayoutParams(param);
+
+            TextView tv = new TextView(context);
+            TextView tv2 = new TextView(context);
+
+            tv.setText(schedule.getPlanTitle());
             tv.setTextColor(Color.parseColor("#FFFFFF"));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, DEFAULT_STICKER_FONT_SIZE_DP);
+            tv.setPadding(10, 0, 10, 0);
+            tv.setTypeface(null, Typeface.BOLD);
+            tv.setId(R.id.text_view_item);
+
+            tv2.setText(schedule.getPlanContent());
+            tv2.setTextColor(Color.parseColor("#F2F2F2"));
+            tv2.setTextSize(TypedValue.COMPLEX_UNIT_DIP, DEFAULT_STICKER_FONT_SIZE_DP);
+            tv2.setPadding(10, 0, 10, 0);
             tv.setTypeface(null, Typeface.BOLD);
 
-            tv.setOnClickListener(new OnClickListener() {
+            relativeItem.addView(tv);
+            relativeItem.addView(tv2);
+
+            RelativeLayout.LayoutParams item_param = createStickerParam2(schedule);
+            tv.setLayoutParams(item_param);
+            RelativeLayout.LayoutParams item_param2 = createStickerParam3(schedule, tv);
+            tv2.setLayoutParams(item_param2);
+
+            sticker.addTextView(tv);
+            sticker.addTextView2(tv2);
+            sticker.addRelative(relativeItem);
+
+            stickerBox.addView(relativeItem);
+
+            relativeItem.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (stickerSelectedListener != null) {
@@ -160,10 +195,9 @@ public class TimetableView extends LinearLayout {
                 }
             });
 
-            sticker.addTextView(tv);
             sticker.addSchedule(schedule);
             stickers.put(count, sticker);
-            stickerBox.addView(tv);
+
         }
         setStickerColor();
     }
@@ -175,21 +209,25 @@ public class TimetableView extends LinearLayout {
     public void load(String data) {
         removeAll();
         stickers = SaveManager.loadSticker(data);
-        int maxKey = 0;
-        for (int key : stickers.keySet()) {
-            ArrayList<Schedule> schedules = stickers.get(key).getSchedules();
-            add(schedules, key);
-            if (maxKey < key) maxKey = key;
+        if(stickers.isEmpty()) {
+            Toast.makeText(context, "NO DATA", Toast.LENGTH_SHORT).show();
+        } else {
+            int maxKey = 0;
+            for (int key : stickers.keySet()) {
+                ArrayList<Schedule> schedules = stickers.get(key).getSchedules();
+                add(schedules, key);
+                if (maxKey < key) maxKey = key;
+            }
+            stickerCount = maxKey + 1;
+            setStickerColor();
         }
-        stickerCount = maxKey + 1;
-        setStickerColor();
     }
 
     public void removeAll() {
         for (int key : stickers.keySet()) {
             Sticker sticker = stickers.get(key);
-            for (TextView tv : sticker.getView()) {
-                stickerBox.removeView(tv);
+            for (RelativeLayout relativeLay : sticker.getRelative()) {
+                stickerBox.removeView(relativeLay);
             }
         }
         stickers.clear();
@@ -202,8 +240,8 @@ public class TimetableView extends LinearLayout {
 
     public void remove(int idx) {
         Sticker sticker = stickers.get(idx);
-        for (TextView tv : sticker.getView()) {
-            stickerBox.removeView(tv);
+        for (RelativeLayout relativeLay : sticker.getRelative()) {
+            stickerBox.removeView(relativeLay);
         }
         stickers.remove(idx);
         setStickerColor();
@@ -215,8 +253,8 @@ public class TimetableView extends LinearLayout {
         View element = row.getChildAt(idx);
         if (highlightMode == HighlightMode.COLOR) {
             TextView tx = (TextView)element;
-            tx.setTextColor(Color.parseColor("#FFFFFF"));
-            tx.setBackgroundColor(headerHighlightColor);
+            if (tx.getText().toString().contains("토")) tx.setTextColor(getResources().getColor(R.color.header_highlight_color_SAT));
+            else if (tx.getText().toString().contains("일")) tx.setTextColor(getResources().getColor(R.color.header_highlight_color_SUN));
             tx.setTypeface(null, Typeface.BOLD);
             tx.setTextSize(TypedValue.COMPLEX_UNIT_DIP, DEFAULT_HEADER_HIGHLIGHT_FONT_SIZE_DP);
         }
@@ -251,9 +289,12 @@ public class TimetableView extends LinearLayout {
         int colorSize = stickerColors.length;
 
         for (i = 0; i < size; i++) {
-            for (TextView v : stickers.get(orders[i]).getView()) {
+            for (RelativeLayout v : stickers.get(orders[i]).getRelative()) {
                 v.setBackgroundColor(Color.parseColor(stickerColors[i % (colorSize)]));
             }
+            /*for (TextView v : stickers.get(orders[i]).getView()) {
+                v.setBackgroundColor(Color.parseColor(stickerColors[i % (colorSize)]));
+            }*/
         }
     }
 
@@ -286,7 +327,9 @@ public class TimetableView extends LinearLayout {
 
     private void createTableHeader() {
         TableRow tableRow = new TableRow(context);
-        tableRow.setLayoutParams(createTableLayoutParam());
+        tableRow.setLayoutParams(createTableHeaderLayoutParam());
+
+        int dayOfWeek = getDayOfWeek();
 
         for (int i = 0; i < columnCount; i++) {
             TextView tv = new TextView(context);
@@ -297,12 +340,30 @@ public class TimetableView extends LinearLayout {
             }
             tv.setTextColor(getResources().getColor(R.color.colorHeaderText));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, DEFAULT_HEADER_FONT_SIZE_DP);
-            tv.setText(headerTitle[i]);
+            if (i == 0) {
+                tv.setText(headerTitle[i]);
+            } else {
+                tv.setText(headerTitle[i] + "\n" + Integer.toString(dayOfWeek++));
+            }
             tv.setGravity(Gravity.CENTER);
 
             tableRow.addView(tv);
         }
         tableHeader.addView(tableRow);
+    }
+
+    private int getDayOfWeek() {
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd");
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+
+        cal.set(Calendar.DAY_OF_WEEK, 2);
+
+        int startDay = Integer.parseInt(sdf.format(cal.getTime()));
+
+        return startDay;
     }
 
     private RelativeLayout.LayoutParams createStickerParam(Schedule schedule) {
@@ -316,11 +377,32 @@ public class TimetableView extends LinearLayout {
         return param;
     }
 
+    private RelativeLayout.LayoutParams createStickerParam2(Schedule schedule) {
+        int cell_w = calCellWidth();
+
+//        RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(cell_w, calStickerHeightPx(schedule) - tv.getHeight());
+        RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(cell_w, ViewGroup.LayoutParams.WRAP_CONTENT);
+        param.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        param.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+//        param.setMargins(sideCellWidth + cell_w * schedule.getDay(), calStickerTopPxByTime(schedule.getStartTime()), 0, 0);
+
+        return param;
+    }
+
+    private RelativeLayout.LayoutParams createStickerParam3(Schedule schedule, TextView tv) {
+        int cell_w = calCellWidth();
+
+        RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(cell_w, ViewGroup.LayoutParams.WRAP_CONTENT);
+        param.addRule(RelativeLayout.BELOW, tv.getId());
+
+        return param;
+    }
+
     private int calCellWidth() {
         Display display = ((Activity) context).getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        int cell_w = (size.x-getPaddingLeft() - getPaddingRight()- sideCellWidth) / (columnCount - 1);
+        int cell_w = (size.x-getPaddingLeft() - getPaddingRight() - sideCellWidth) / (columnCount - 1);
         return cell_w;
     }
 
@@ -341,12 +423,24 @@ public class TimetableView extends LinearLayout {
         return new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.MATCH_PARENT);
     }
 
+    private TableLayout.LayoutParams createTableHeaderLayoutParam() {
+        TableLayout.LayoutParams param = new TableLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        param.bottomMargin = cellHeight/3;
+        return param;
+    }
+
     private TableRow.LayoutParams createTableRowParam(int h_px) {
         return new TableRow.LayoutParams(calCellWidth(), h_px);
     }
 
     private LinearLayout.LayoutParams createTableRowParam(int w_px, int h_px) {
         return new TableRow.LayoutParams(w_px, h_px);
+    }
+
+    private ViewGroup.LayoutParams createLinTP(int w, int h) {
+        return new LinearLayout.LayoutParams(w, h);
     }
 
     private String getHeaderTime(int i) {

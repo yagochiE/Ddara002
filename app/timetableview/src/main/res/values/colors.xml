@@ -25,4 +25,6 @@
     </string-array>
 
     <color name="default_header_highlight_color">#74a4f3</color>
+    <color name="header_highlight_color_SAT">#42B9FF</color>
+    <color name="header_highlight_color_SUN">#FF5959</color>
 </resources>

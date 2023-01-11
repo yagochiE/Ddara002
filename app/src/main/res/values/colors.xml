@@ -7,4 +7,30 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+
+    <color name="colorAppBar">#000000</color>
+
+    <color name="colorHeader">#fcfcfc</color>
+    <color name="colorHeaderText">#7d7d7d</color>
+    <color name="colorCalendarItem">#efefef</color>
+
+    <string-array name="default_sticker_color">
+        <item>#f08676</item>
+        <item>#ecc369</item>
+        <item>#a7ca70</item>
+        <item>#7dd1c1</item>
+        <item>#7aa5e9</item>
+        <item>#fbaa68</item>
+        <item>#9f86e1</item>
+        <item>#78cb87</item>
+        <item>#d397ed</item>
+    </string-array>
+
+    <color name="default_header_highlight_color">#74a4f3</color>
+    <color name="header_highlight_color_SAT">#42B9FF</color>
+    <color name="header_highlight_color_SUN">#FF5959</color>
 </resources>

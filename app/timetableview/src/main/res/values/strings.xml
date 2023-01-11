@@ -1,5 +1,39 @@
 <resources>
     <string name="app_name">timetableview</string>
+
+    <!--
+    <string-array name="default_header_title">
+        <item></item>
+        <item></item>
+        <item>월</item>
+        <item></item>
+        <item>화</item>
+        <item></item>
+        <item>수</item>
+        <item></item>
+        <item>목</item>
+        <item></item>
+        <item>금</item>
+        <item></item>
+        <item>토</item>
+        <item></item>
+        <item>일</item>
+        <item></item>
+    </string-array>
+    -->
+
+    <string-array name="default_header_title">
+        <item></item>
+        <item>월</item>
+        <item>화</item>
+        <item>수</item>
+        <item>목</item>
+        <item>금</item>
+        <item>토</item>
+        <item>일</item>
+    </string-array>
+
+    <!--
     <string-array name="default_header_title">
         <item></item>
         <item>Mon</item>
@@ -7,5 +41,8 @@
         <item>Wed</item>
         <item>Thu</item>
         <item>Fri</item>
+        <item>SAT</item>
+        <item>SUN</item>
     </string-array>
+    -->
 </resources>

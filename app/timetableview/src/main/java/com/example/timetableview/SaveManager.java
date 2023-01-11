@@ -21,9 +21,8 @@ public class SaveManager {
             ArrayList<Schedule> schedules = stickers.get(idx).getSchedules();
             for (Schedule schedule : schedules) {
                 JsonObject obj3 = new JsonObject();
-                obj3.addProperty("classTitle", schedule.classTitle);
-                obj3.addProperty("classPalce", schedule.classPlace);
-                obj3.addProperty("professorName", schedule.getProfessorName());
+                obj3.addProperty("planTitle", schedule.getPlanTitle());
+                obj3.addProperty("planContent", schedule.getPlanContent());
                 obj3.addProperty("day", schedule.getDay());
                 JsonObject obj4 = new JsonObject(); //startTime
                 obj4.addProperty("hour", schedule.getStartTime().getHour());
@@ -55,9 +54,8 @@ public class SaveManager {
             for (int k = 0; k < arr2.size(); k++) {
                 Schedule schedule = new Schedule();
                 JsonObject obj3 = (JsonObject)arr2.get(k);
-                schedule.setClassTitle(obj3.get("classTitle").getAsString());
-                schedule.setClassPlace(obj3.get("classPalce").getAsString());
-                schedule.setProfessorName(obj3.get("professorName").getAsString());
+                schedule.setPlanTitle(obj3.get("planTitle").getAsString());
+                schedule.setPlanContent(obj3.get("planContent").getAsString());
                 schedule.setDay(obj3.get("day").getAsInt());
                 Time startTime = new Time();
                 JsonObject obj4 = (JsonObject) obj3.get("startTime");
